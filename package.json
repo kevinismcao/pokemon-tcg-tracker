@@ -1,0 +1,21 @@
+{
+  "name": "pokemon-tcg-tracker",
+  "version": "1.0.0",
+  "description": "A comprehensive Pokemon TCG inventory tracker with password protection and profit/loss tracking",
+  "main": "index.html",
+  "scripts": {
+    "start": "open index.html",
+    "serve": "python3 -m http.server 8000"
+  },
+  "keywords": [
+    "pokemon",
+    "tcg",
+    "inventory",
+    "tracker",
+    "trading-cards"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {}
+}

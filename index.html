@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon TCG Inventory Tracker</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Login Screen -->
+        <div id="loginScreen" class="login-container">
+            <div class="login-card">
+                <h2>🔐 Access Your Pokemon TCG Inventory</h2>
+                <p>Enter your password to view your collection</p>
+                <div class="login-form">
+                    <input type="password" id="passwordInput" placeholder="Enter password" />
+                    <button class="btn btn-primary" onclick="login()">Login</button>
+                    <div id="loginError" class="error-message"></div>
+                </div>
+                <div class="password-hint">
+                    <small>First time? Set your password and remember it!</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main App (Hidden by default) -->
+        <div id="mainApp" style="display: none;">
+            <div class="header">
+                <div class="header-content">
+                    <div>
+                        <h1>⚡ Pokemon TCG Inventory Tracker</h1>
+                        <p>Track your cards, sealed products, and profits with style!</p>
+                    </div>
+                    <button class="btn btn-logout" onclick="logout()">Logout</button>
+                </div>
+            </div>
+
+            <div class="stats" id="statsContainer">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalItems">0</div>
+                    <div class="stat-label">Total Items</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalInvested">$0.00</div>
+                    <div class="stat-label">Total Invested</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalValue">$0.00</div>
+                    <div class="stat-label">Current Value</div>
+                </div>
+                <div class="stat-card" id="profitCard">
+                    <div class="stat-value" id="totalProfit">$0.00</div>
+                    <div class="stat-label">Total Profit/Loss</div>
+                </div>
+                <div class="stat-card" id="roiCard">
+                    <div class="stat-value" id="totalROI">0%</div>
+                    <div class="stat-label">Overall ROI</div>
+                </div>
+            </div>
+
+            <!-- Edit Modal -->
+            <div id="editModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Edit Item</h3>
+                        <span class="close" onclick="closeEditModal()">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="editItemId">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="editItemType">Item Type</label>
+                                <select id="editItemType">
+                                    <option value="card">Card</option>
+                                    <option value="sealed">Sealed Product</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="editItemName">Item Name</label>
+                                <input type="text" id="editItemName">
+                            </div>
+                            <div class="form-group">
+                                <label for="editSetName">Set/Product Line</label>
+                                <input type="text" id="editSetName">
+                            </div>
+                            <div class="form-group">
+                                <label for="editCondition">Condition/Details</label>
+                                <select id="editCondition">
+                                    <option value="Mint">Mint</option>
+                                    <option value="Near Mint">Near Mint</option>
+                                    <option value="Lightly Played">Lightly Played</option>
+                                    <option value="Moderately Played">Moderately Played</option>
+                                    <option value="Heavily Played">Heavily Played</option>
+                                    <option value="Damaged">Damaged</option>
+                                    <option value="Sealed">Sealed</option>
+                                    <option value="Opened">Opened</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="editQuantity">Quantity</label>
+                                <input type="number" id="editQuantity" min="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="editBuyPrice">Buy Price ($)</label>
+                                <input type="number" id="editBuyPrice" step="0.01" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="editSellPrice">Sell Price ($)</label>
+                                <input type="number" id="editSellPrice" step="0.01" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="editDatePurchased">Date Purchased</label>
+                                <input type="date" id="editDatePurchased">
+                            </div>
+                        </div>
+                        <div class="profit-preview">
+                            <strong>Profit Preview: </strong><span id="profitPreview">$0.00</span>
+                        </div>
+                        <div class="modal-actions">
+                            <button class="btn btn-primary" onclick="saveEditedItem()">Save Changes</button>
+                            <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="itemType">Item Type</label>
+                        <select id="itemType">
+                            <option value="card">Card</option>
+                            <option value="sealed">Sealed Product</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemName">Item Name</label>
+                        <input type="text" id="itemName" placeholder="e.g., Charizard VMAX, Booster Box">
+                    </div>
+                    <div class="form-group">
+                        <label for="setName">Set/Product Line</label>
+                        <input type="text" id="setName" placeholder="e.g., Brilliant Stars, Pokemon GO">
+                    </div>
+                    <div class="form-group">
+                        <label for="condition">Condition/Details</label>
+                        <select id="condition">
+                            <option value="Mint">Mint</option>
+                            <option value="Near Mint">Near Mint</option>
+                            <option value="Lightly Played">Lightly Played</option>
+                            <option value="Moderately Played">Moderately Played</option>
+                            <option value="Heavily Played">Heavily Played</option>
+                            <option value="Damaged">Damaged</option>
+                            <option value="Sealed">Sealed</option>
+                            <option value="Opened">Opened</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="quantity">Quantity</label>
+                        <input type="number" id="quantity" min="1" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="buyPrice">Buy Price ($)</label>
+                        <input type="number" id="buyPrice" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="sellPrice">Sell Price ($)</label>
+                        <input type="number" id="sellPrice" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="datePurchased">Date Purchased</label>
+                        <input type="date" id="datePurchased">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="addItem()">Add Item to Inventory</button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Type</th>
+                            <th>Item Name</th>
+                            <th>Set/Product</th>
+                            <th>Condition</th>
+                            <th>Qty</th>
+                            <th>Buy Price</th>
+                            <th>Sell Price</th>
+                            <th>Profit/Loss</th>
+                            <th>ROI %</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryTable">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="export-section">
+                <h3 style="margin-bottom: 20px; color: #495057;">Export Your Data</h3>
+                <button class="btn btn-export" onclick="exportToCSV()">Export to CSV</button>
+                <button class="btn btn-export" onclick="exportToJSON()">Export to JSON</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
