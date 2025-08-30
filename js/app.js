@@ -1,6 +1,7 @@
 let inventory = [];
 let nextId = 1;
 let isLoggedIn = false;
+let customSets = [];
 
 // Simple password hashing (for client-side only)
 function simpleHash(str) {
@@ -41,6 +42,8 @@ function showMainApp() {
     
     // Initialize app data
     loadData();
+    loadSets();
+    updateSetDropdowns();
     updateStats();
     renderTable();
     
@@ -203,7 +206,7 @@ function saveEditedItem() {
         id: id,
         type: document.getElementById('editItemType').value,
         name: itemName,
-        set: document.getElementById('editSetName').value.trim(),
+        set: document.getElementById('editSetName').value,
         condition: document.getElementById('editCondition').value,
         quantity: parseInt(document.getElementById('editQuantity').value),
         buyPrice: parseFloat(document.getElementById('editBuyPrice').value) || 0,
@@ -220,9 +223,13 @@ function saveEditedItem() {
 
 // Close modal when clicking outside
 window.onclick = function(event) {
-    const modal = document.getElementById('editModal');
-    if (event.target === modal) {
+    const editModal = document.getElementById('editModal');
+    const setModal = document.getElementById('setManagerModal');
+    if (event.target === editModal) {
         closeEditModal();
+    }
+    if (event.target === setModal) {
+        closeSetManager();
     }
 }
 
@@ -236,6 +243,151 @@ function loadData() {
     }
 }
 
+function loadSets() {
+    if (!isLoggedIn) return;
+    
+    const savedSets = localStorage.getItem('pokemonTCGSets');
+    if (savedSets) {
+        customSets = JSON.parse(savedSets);
+    } else {
+        // Initialize with default Pokemon TCG sets
+        customSets = [
+            'Stellar Crown',
+            'Shrouded Fable',
+            'Twilight Masquerade',
+            'Temporal Forces',
+            'Paldean Fates',
+            'Paradox Rift',
+            'Obsidian Flames',
+            'Paldea Evolved',
+            'Scarlet & Violet',
+            'Crown Zenith',
+            'Silver Tempest',
+            'Lost Origin',
+            'Astral Radiance',
+            'Brilliant Stars',
+            'Fusion Strike',
+            'Celebrations',
+            'Evolving Skies',
+            'Chilling Reign',
+            'Battle Styles',
+            'Shining Fates',
+            'Vivid Voltage',
+            'Champions Path',
+            'Darkness Ablaze',
+            'Base Set',
+            'Jungle',
+            'Fossil',
+            'Team Rocket',
+            'Other/Custom'
+        ];
+        saveSets();
+    }
+}
+
+function saveSets() {
+    if (!isLoggedIn) return;
+    localStorage.setItem('pokemonTCGSets', JSON.stringify(customSets));
+}
+
+function updateSetDropdowns() {
+    const mainSelect = document.getElementById('setName');
+    const editSelect = document.getElementById('editSetName');
+    
+    // Clear existing options
+    mainSelect.innerHTML = '';
+    editSelect.innerHTML = '';
+    
+    // Add default option
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Select a set...';
+    mainSelect.appendChild(defaultOption);
+    editSelect.appendChild(defaultOption.cloneNode(true));
+    
+    // Add all sets
+    customSets.forEach(set => {
+        const option = document.createElement('option');
+        option.value = set;
+        option.textContent = set;
+        mainSelect.appendChild(option);
+        editSelect.appendChild(option.cloneNode(true));
+    });
+}
+
+function showSetManager() {
+    const modal = document.getElementById('setManagerModal');
+    modal.style.display = 'block';
+    renderSetList();
+}
+
+function closeSetManager() {
+    document.getElementById('setManagerModal').style.display = 'none';
+}
+
+function renderSetList() {
+    const listContainer = document.getElementById('setList');
+    listContainer.innerHTML = '';
+    
+    customSets.forEach((set, index) => {
+        const setItem = document.createElement('div');
+        setItem.className = 'set-item';
+        setItem.innerHTML = `
+            <span>${set}</span>
+            <button class="btn btn-danger btn-sm" onclick="deleteSet(${index})">Delete</button>
+        `;
+        listContainer.appendChild(setItem);
+    });
+}
+
+function addNewSet() {
+    const input = document.getElementById('newSetInput');
+    const setName = input.value.trim();
+    
+    if (!setName) {
+        alert('Please enter a set name');
+        return;
+    }
+    
+    if (customSets.includes(setName)) {
+        alert('This set already exists');
+        return;
+    }
+    
+    customSets.push(setName);
+    customSets.sort();
+    saveSets();
+    updateSetDropdowns();
+    renderSetList();
+    input.value = '';
+}
+
+function deleteSet(index) {
+    const setToDelete = customSets[index];
+    
+    // Check if any items use this set
+    const itemsUsingSet = inventory.filter(item => item.set === setToDelete);
+    
+    if (itemsUsingSet.length > 0) {
+        if (!confirm(`${itemsUsingSet.length} item(s) are using this set. Deleting it will clear the set field for these items. Continue?`)) {
+            return;
+        }
+        // Clear the set field for items using this set
+        inventory.forEach(item => {
+            if (item.set === setToDelete) {
+                item.set = '';
+            }
+        });
+        saveData();
+        renderTable();
+    }
+    
+    customSets.splice(index, 1);
+    saveSets();
+    updateSetDropdowns();
+    renderSetList();
+}
+
 function saveData() {
     if (!isLoggedIn) return;
     localStorage.setItem('pokemonTCGInventory', JSON.stringify(inventory));
@@ -246,7 +398,7 @@ function addItem() {
     
     const itemType = document.getElementById('itemType').value;
     const itemName = document.getElementById('itemName').value.trim();
-    const setName = document.getElementById('setName').value.trim();
+    const setName = document.getElementById('setName').value;
     const condition = document.getElementById('condition').value;
     const quantity = parseInt(document.getElementById('quantity').value);
     const buyPrice = parseFloat(document.getElementById('buyPrice').value) || 0;
@@ -280,7 +432,7 @@ function addItem() {
 
 function clearForm() {
     document.getElementById('itemName').value = '';
-    document.getElementById('setName').value = '';
+    document.getElementById('setName').selectedIndex = 0;
     document.getElementById('quantity').value = '1';
     document.getElementById('buyPrice').value = '';
     document.getElementById('sellPrice').value = '';

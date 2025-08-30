@@ -59,6 +59,29 @@
                 </div>
             </div>
 
+            <!-- Set Manager Modal -->
+            <div id="setManagerModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Manage Sets</h3>
+                        <span class="close" onclick="closeSetManager()">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div class="set-manager-section">
+                            <h4>Add New Set</h4>
+                            <div class="add-set-form">
+                                <input type="text" id="newSetInput" placeholder="Enter set name...">
+                                <button class="btn btn-primary" onclick="addNewSet()">Add Set</button>
+                            </div>
+                        </div>
+                        <div class="set-manager-section">
+                            <h4>Existing Sets</h4>
+                            <div id="setList" class="set-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Edit Modal -->
             <div id="editModal" class="modal" style="display: none;">
                 <div class="modal-content">
@@ -82,7 +105,9 @@
                             </div>
                             <div class="form-group">
                                 <label for="editSetName">Set/Product Line</label>
-                                <input type="text" id="editSetName">
+                                <select id="editSetName">
+                                    <option value="">Select a set...</option>
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label for="editCondition">Condition/Details</label>
@@ -141,8 +166,13 @@
                         <input type="text" id="itemName" placeholder="e.g., Charizard VMAX, Booster Box">
                     </div>
                     <div class="form-group">
-                        <label for="setName">Set/Product Line</label>
-                        <input type="text" id="setName" placeholder="e.g., Brilliant Stars, Pokemon GO">
+                        <label for="setName">
+                            Set/Product Line
+                            <button type="button" class="btn btn-sm btn-secondary" onclick="showSetManager()" style="margin-left: 10px;">Manage Sets</button>
+                        </label>
+                        <select id="setName">
+                            <option value="">Select a set...</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="condition">Condition/Details</label>
