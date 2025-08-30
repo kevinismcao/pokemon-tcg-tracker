@@ -153,6 +153,10 @@
             </div>
 
             <div class="controls">
+                <div class="controls-header">
+                    <h3>Add New Item</h3>
+                    <button type="button" class="btn btn-secondary" onclick="showSetManager()">Manage Sets</button>
+                </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="itemType">Item Type</label>
@@ -166,10 +170,7 @@
                         <input type="text" id="itemName" placeholder="e.g., Charizard VMAX, Booster Box">
                     </div>
                     <div class="form-group">
-                        <label for="setName">
-                            Set/Product Line
-                            <button type="button" class="btn btn-sm btn-secondary" onclick="showSetManager()" style="margin-left: 10px;">Manage Sets</button>
-                        </label>
+                        <label for="setName">Set/Product Line</label>
                         <select id="setName">
                             <option value="">Select a set...</option>
                         </select>

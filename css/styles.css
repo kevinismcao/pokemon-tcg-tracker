@@ -136,6 +136,21 @@ body {
     border-bottom: 1px solid #dee2e6;
 }
 
+.controls-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.controls-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.3em;
+}
+
 .form-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
