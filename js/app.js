@@ -1,7 +1,9 @@
 let inventory = [];
+let soldItems = [];
 let nextId = 1;
 let isLoggedIn = false;
 let customSets = [];
+let currentTab = 'cards';
 
 // Simple password hashing (for client-side only)
 function simpleHash(str) {
@@ -97,13 +99,162 @@ function showError(message) {
     }, 3000);
 }
 
+// Toggle grading options visibility
+function toggleGradingOptions() {
+    const itemType = document.getElementById('itemType').value;
+    const gradingRow = document.getElementById('gradingRow');
+    const conditionGroup = document.getElementById('condition');
+    
+    if (itemType === 'card') {
+        gradingRow.style.display = 'grid';
+        // Hide sealed-specific condition options
+        const sealedOptions = ['Sealed', 'Opened'];
+        Array.from(conditionGroup.options).forEach(option => {
+            if (sealedOptions.includes(option.value)) {
+                option.style.display = 'none';
+            } else {
+                option.style.display = 'block';
+            }
+        });
+    } else {
+        gradingRow.style.display = 'none';
+        // Reset grading fields
+        document.getElementById('gradingStatus').value = 'raw';
+        toggleGradeSelection();
+        // Show all condition options
+        Array.from(conditionGroup.options).forEach(option => {
+            option.style.display = 'block';
+        });
+    }
+}
+
+function toggleGradeSelection() {
+    const gradingStatus = document.getElementById('gradingStatus').value;
+    const gradeCompanyGroup = document.getElementById('gradeCompanyGroup');
+    const gradeValueGroup = document.getElementById('gradeValueGroup');
+    
+    if (gradingStatus === 'graded') {
+        gradeCompanyGroup.style.display = 'block';
+        gradeValueGroup.style.display = 'block';
+    } else {
+        gradeCompanyGroup.style.display = 'none';
+        gradeValueGroup.style.display = 'none';
+    }
+}
+
+function toggleEditGradingOptions() {
+    const itemType = document.getElementById('editItemType').value;
+    const gradingRow = document.getElementById('editGradingRow');
+    const conditionGroup = document.getElementById('editCondition');
+    
+    if (itemType === 'card') {
+        gradingRow.style.display = 'grid';
+        // Hide sealed-specific condition options
+        const sealedOptions = ['Sealed', 'Opened'];
+        Array.from(conditionGroup.options).forEach(option => {
+            if (sealedOptions.includes(option.value)) {
+                option.style.display = 'none';
+            } else {
+                option.style.display = 'block';
+            }
+        });
+    } else {
+        gradingRow.style.display = 'none';
+        // Reset grading fields
+        document.getElementById('editGradingStatus').value = 'raw';
+        toggleEditGradeSelection();
+        // Show all condition options
+        Array.from(conditionGroup.options).forEach(option => {
+            option.style.display = 'block';
+        });
+    }
+}
+
+function toggleEditGradeSelection() {
+    const gradingStatus = document.getElementById('editGradingStatus').value;
+    const gradeCompanyGroup = document.getElementById('editGradeCompanyGroup');
+    const gradeValueGroup = document.getElementById('editGradeValueGroup');
+    
+    if (gradingStatus === 'graded') {
+        gradeCompanyGroup.style.display = 'block';
+        gradeValueGroup.style.display = 'block';
+    } else {
+        gradeCompanyGroup.style.display = 'none';
+        gradeValueGroup.style.display = 'none';
+    }
+}
+
+function switchTab(tab) {
+    currentTab = tab;
+    
+    // Update tab buttons
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Show/hide table containers
+    document.getElementById('cardsTableContainer').style.display = 'none';
+    document.getElementById('sealedTableContainer').style.display = 'none';
+    document.getElementById('soldTableContainer').style.display = 'none';
+    
+    if (tab === 'cards') {
+        document.getElementById('cardsTableContainer').style.display = 'block';
+    } else if (tab === 'sealed') {
+        document.getElementById('sealedTableContainer').style.display = 'block';
+    } else if (tab === 'sold') {
+        document.getElementById('soldTableContainer').style.display = 'block';
+    }
+    
+    renderTable();
+}
+
 function renderTable() {
     if (!isLoggedIn) return;
     
-    const tbody = document.getElementById('inventoryTable');
-    tbody.innerHTML = '';
-
-    inventory.forEach(item => {
+    // Render cards table
+    const cardsBody = document.getElementById('cardsTable');
+    cardsBody.innerHTML = '';
+    
+    const cards = inventory.filter(item => item.type === 'card');
+    cards.forEach(item => {
+        const row = document.createElement('tr');
+        const gainClass = item.totalGain > 0 ? 'profit' : item.totalGain < 0 ? 'loss' : '';
+        const roi = item.buyPrice > 0 ? ((item.sellPrice - item.buyPrice) / item.buyPrice * 100) : 0;
+        const roiClass = roi > 0 ? 'roi-positive' : roi < 0 ? 'roi-negative' : '';
+        
+        // Format grading info for display
+        let conditionDisplay = item.condition;
+        if (item.gradingStatus === 'graded') {
+            conditionDisplay = `${item.gradeCompany} ${item.gradeValue}`;
+        }
+        
+        row.innerHTML = `
+            <td>${item.id.toString().padStart(4, '0')}</td>
+            <td><strong>${item.name}</strong></td>
+            <td>${item.set}</td>
+            <td>${conditionDisplay}</td>
+            <td>${item.quantity}</td>
+            <td>${item.buyPrice.toFixed(2)}</td>
+            <td>${item.sellPrice.toFixed(2)}</td>
+            <td class="${gainClass}">${item.totalGain.toFixed(2)}</td>
+            <td class="${roiClass}">${roi.toFixed(1)}%</td>
+            <td>${item.date ? new Date(item.date).toLocaleDateString() : 'N/A'}</td>
+            <td>
+                <button class="btn btn-edit" onclick="editItem(${item.id})">Edit</button>
+                <button class="btn btn-success" onclick="markAsSold(${item.id})">Sold</button>
+                <button class="btn btn-danger" onclick="removeItem(${item.id})">Delete</button>
+            </td>
+        `;
+        cardsBody.appendChild(row);
+    });
+    
+    // Render sealed products table
+    const sealedBody = document.getElementById('sealedTable');
+    sealedBody.innerHTML = '';
+    
+    const sealedProducts = inventory.filter(item => item.type === 'sealed');
+    sealedProducts.forEach(item => {
         const row = document.createElement('tr');
         const gainClass = item.totalGain > 0 ? 'profit' : item.totalGain < 0 ? 'loss' : '';
         const roi = item.buyPrice > 0 ? ((item.sellPrice - item.buyPrice) / item.buyPrice * 100) : 0;
@@ -111,7 +262,6 @@ function renderTable() {
         
         row.innerHTML = `
             <td>${item.id.toString().padStart(4, '0')}</td>
-            <td><span class="type-badge type-${item.type}">${item.type}</span></td>
             <td><strong>${item.name}</strong></td>
             <td>${item.set}</td>
             <td>${item.condition}</td>
@@ -123,10 +273,48 @@ function renderTable() {
             <td>${item.date ? new Date(item.date).toLocaleDateString() : 'N/A'}</td>
             <td>
                 <button class="btn btn-edit" onclick="editItem(${item.id})">Edit</button>
+                <button class="btn btn-success" onclick="markAsSold(${item.id})">Sold</button>
                 <button class="btn btn-danger" onclick="removeItem(${item.id})">Delete</button>
             </td>
         `;
-        tbody.appendChild(row);
+        sealedBody.appendChild(row);
+    });
+    
+    // Render sold items table
+    const soldBody = document.getElementById('soldTable');
+    soldBody.innerHTML = '';
+    
+    soldItems.forEach(item => {
+        const row = document.createElement('tr');
+        const gainClass = item.totalGain > 0 ? 'profit' : item.totalGain < 0 ? 'loss' : '';
+        const roi = item.buyPrice > 0 ? ((item.sellPrice - item.buyPrice) / item.buyPrice * 100) : 0;
+        const roiClass = roi > 0 ? 'roi-positive' : roi < 0 ? 'roi-negative' : '';
+        
+        // Format grading info for display
+        let conditionDisplay = item.condition;
+        if (item.type === 'card' && item.gradingStatus === 'graded') {
+            conditionDisplay = `${item.gradeCompany} ${item.gradeValue}`;
+        }
+        
+        row.innerHTML = `
+            <td>${item.id.toString().padStart(4, '0')}</td>
+            <td><span class="type-badge type-${item.type}">${item.type}</span></td>
+            <td><strong>${item.name}</strong></td>
+            <td>${item.set}</td>
+            <td>${conditionDisplay}</td>
+            <td>${item.quantity}</td>
+            <td>${item.buyPrice.toFixed(2)}</td>
+            <td>${item.sellPrice.toFixed(2)}</td>
+            <td class="${gainClass}">${item.totalGain.toFixed(2)}</td>
+            <td class="${roiClass}">${roi.toFixed(1)}%</td>
+            <td>${item.date ? new Date(item.date).toLocaleDateString() : 'N/A'}</td>
+            <td>${item.soldDate ? new Date(item.soldDate).toLocaleDateString() : 'N/A'}</td>
+            <td>
+                <button class="btn btn-secondary" onclick="moveBackToInventory(${item.id})">Unsold</button>
+                <button class="btn btn-danger" onclick="removeSoldItem(${item.id})">Delete</button>
+            </td>
+        `;
+        soldBody.appendChild(row);
     });
 }
 
@@ -144,6 +332,17 @@ function editItem(id) {
     document.getElementById('editBuyPrice').value = item.buyPrice;
     document.getElementById('editSellPrice').value = item.sellPrice;
     document.getElementById('editDatePurchased').value = item.date;
+    
+    // Handle grading fields
+    toggleEditGradingOptions();
+    if (item.type === 'card') {
+        document.getElementById('editGradingStatus').value = item.gradingStatus || 'raw';
+        toggleEditGradeSelection();
+        if (item.gradingStatus === 'graded') {
+            document.getElementById('editGradeCompany').value = item.gradeCompany || 'PSA';
+            document.getElementById('editGradeValue').value = item.gradeValue || '10';
+        }
+    }
 
     // Show modal
     document.getElementById('editModal').style.display = 'block';
@@ -202,9 +401,10 @@ function saveEditedItem() {
     }
 
     // Update the item
-    inventory[itemIndex] = {
+    const itemType = document.getElementById('editItemType').value;
+    const updatedItem = {
         id: id,
-        type: document.getElementById('editItemType').value,
+        type: itemType,
         name: itemName,
         set: document.getElementById('editSetName').value,
         condition: document.getElementById('editCondition').value,
@@ -214,6 +414,17 @@ function saveEditedItem() {
         date: document.getElementById('editDatePurchased').value,
         totalGain: (parseFloat(document.getElementById('editSellPrice').value) || 0 - parseFloat(document.getElementById('editBuyPrice').value) || 0) * parseInt(document.getElementById('editQuantity').value)
     };
+    
+    // Add grading info if it's a card
+    if (itemType === 'card') {
+        updatedItem.gradingStatus = document.getElementById('editGradingStatus').value;
+        if (updatedItem.gradingStatus === 'graded') {
+            updatedItem.gradeCompany = document.getElementById('editGradeCompany').value;
+            updatedItem.gradeValue = document.getElementById('editGradeValue').value;
+        }
+    }
+    
+    inventory[itemIndex] = updatedItem;
 
     saveData();
     renderTable();
@@ -239,8 +450,16 @@ function loadData() {
     const savedData = localStorage.getItem('pokemonTCGInventory');
     if (savedData) {
         inventory = JSON.parse(savedData);
-        nextId = inventory.length > 0 ? Math.max(...inventory.map(item => item.id)) + 1 : 1;
     }
+    
+    const savedSoldItems = localStorage.getItem('pokemonTCGSoldItems');
+    if (savedSoldItems) {
+        soldItems = JSON.parse(savedSoldItems);
+    }
+    
+    // Calculate next ID from both inventory and sold items
+    const allItems = [...inventory, ...soldItems];
+    nextId = allItems.length > 0 ? Math.max(...allItems.map(item => item.id)) + 1 : 1;
 }
 
 function loadSets() {
@@ -391,6 +610,7 @@ function deleteSet(index) {
 function saveData() {
     if (!isLoggedIn) return;
     localStorage.setItem('pokemonTCGInventory', JSON.stringify(inventory));
+    localStorage.setItem('pokemonTCGSoldItems', JSON.stringify(soldItems));
 }
 
 function addItem() {
@@ -422,6 +642,15 @@ function addItem() {
         date: datePurchased,
         totalGain: (sellPrice - buyPrice) * quantity
     };
+    
+    // Add grading info if it's a card
+    if (itemType === 'card') {
+        newItem.gradingStatus = document.getElementById('gradingStatus').value;
+        if (newItem.gradingStatus === 'graded') {
+            newItem.gradeCompany = document.getElementById('gradeCompany').value;
+            newItem.gradeValue = document.getElementById('gradeValue').value;
+        }
+    }
 
     inventory.push(newItem);
     saveData();
@@ -437,6 +666,48 @@ function clearForm() {
     document.getElementById('buyPrice').value = '';
     document.getElementById('sellPrice').value = '';
     document.getElementById('datePurchased').value = new Date().toISOString().split('T')[0];
+    document.getElementById('gradingStatus').value = 'raw';
+    toggleGradeSelection();
+}
+
+function markAsSold(id) {
+    if (!isLoggedIn) return;
+    
+    const item = inventory.find(i => i.id === id);
+    if (!item) return;
+    
+    if (confirm(`Mark "${item.name}" as sold?`)) {
+        // Add sold date to the item
+        item.soldDate = new Date().toISOString().split('T')[0];
+        
+        // Move from inventory to sold items
+        soldItems.push(item);
+        inventory = inventory.filter(i => i.id !== id);
+        
+        saveData();
+        renderTable();
+        updateStats();
+    }
+}
+
+function moveBackToInventory(id) {
+    if (!isLoggedIn) return;
+    
+    const item = soldItems.find(i => i.id === id);
+    if (!item) return;
+    
+    if (confirm(`Move "${item.name}" back to inventory?`)) {
+        // Remove sold date
+        delete item.soldDate;
+        
+        // Move from sold items back to inventory
+        inventory.push(item);
+        soldItems = soldItems.filter(i => i.id !== id);
+        
+        saveData();
+        renderTable();
+        updateStats();
+    }
 }
 
 function removeItem(id) {
@@ -450,27 +721,48 @@ function removeItem(id) {
     }
 }
 
+function removeSoldItem(id) {
+    if (!isLoggedIn) return;
+    
+    if (confirm('Are you sure you want to permanently delete this sold item?')) {
+        soldItems = soldItems.filter(item => item.id !== id);
+        saveData();
+        renderTable();
+        updateStats();
+    }
+}
+
 function updateStats() {
     if (!isLoggedIn) return;
     
+    // Active inventory stats
     const totalItems = inventory.reduce((sum, item) => sum + item.quantity, 0);
     const totalInvested = inventory.reduce((sum, item) => sum + (item.buyPrice * item.quantity), 0);
     const totalValue = inventory.reduce((sum, item) => sum + (item.sellPrice * item.quantity), 0);
-    const totalProfit = totalValue - totalInvested;
-    const overallROI = totalInvested > 0 ? ((totalProfit / totalInvested) * 100) : 0;
+    const potentialProfit = totalValue - totalInvested;
+    
+    // Sold items stats
+    const soldProfit = soldItems.reduce((sum, item) => sum + item.totalGain, 0);
+    const soldInvested = soldItems.reduce((sum, item) => sum + (item.buyPrice * item.quantity), 0);
+    const soldRevenue = soldItems.reduce((sum, item) => sum + (item.sellPrice * item.quantity), 0);
+    
+    // Combined stats
+    const totalProfit = potentialProfit + soldProfit;
+    const overallInvested = totalInvested + soldInvested;
+    const overallROI = overallInvested > 0 ? ((soldProfit / overallInvested) * 100) : 0;
 
-    document.getElementById('totalItems').textContent = totalItems;
-    document.getElementById('totalInvested').textContent = `$${totalInvested.toFixed(2)}`;
-    document.getElementById('totalValue').textContent = `$${totalValue.toFixed(2)}`;
-    document.getElementById('totalProfit').textContent = `$${totalProfit.toFixed(2)}`;
+    document.getElementById('totalItems').textContent = totalItems + soldItems.reduce((sum, item) => sum + item.quantity, 0);
+    document.getElementById('totalInvested').textContent = `$${overallInvested.toFixed(2)}`;
+    document.getElementById('totalValue').textContent = `$${(totalValue + soldRevenue).toFixed(2)}`;
+    document.getElementById('totalProfit').textContent = `$${soldProfit.toFixed(2)} (Realized)`;
     document.getElementById('totalROI').textContent = `${overallROI.toFixed(1)}%`;
 
     // Update profit card styling
     const profitCard = document.getElementById('profitCard');
     profitCard.className = 'stat-card';
-    if (totalProfit > 0) {
+    if (soldProfit > 0) {
         profitCard.classList.add('profit');
-    } else if (totalProfit < 0) {
+    } else if (soldProfit < 0) {
         profitCard.classList.add('loss');
     }
 

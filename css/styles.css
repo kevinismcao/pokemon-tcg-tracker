@@ -20,6 +20,24 @@ body {
     overflow: hidden;
 }
 
+.type-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.type-card {
+    background: #667eea;
+    color: white;
+}
+
+.type-sealed {
+    background: #f6ad55;
+    color: white;
+}
+
 /* Login Styles */
 .login-container {
     display: flex;
@@ -227,6 +245,16 @@ input:focus, select:focus {
     box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
 }
 
+.btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+}
+
+.btn-success:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
 .stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -269,9 +297,48 @@ input:focus, select:focus {
     font-size: 0.9em;
 }
 
+.tab-navigation {
+    display: flex;
+    gap: 0;
+    padding: 0 30px;
+    background: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.tab-button {
+    padding: 15px 30px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-size: 16px;
+    font-weight: 500;
+    color: #6c757d;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab-button:hover {
+    color: #495057;
+    background: rgba(0,0,0,0.02);
+}
+
+.tab-button.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+    background: white;
+}
+
 .table-container {
     padding: 30px;
     overflow-x: auto;
+}
+
+.table-title {
+    margin: 0 0 20px 0;
+    color: #333;
+    font-size: 1.2em;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e0e0e0;
 }
 
 table {

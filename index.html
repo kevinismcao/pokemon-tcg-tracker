@@ -94,7 +94,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="editItemType">Item Type</label>
-                                <select id="editItemType">
+                                <select id="editItemType" onchange="toggleEditGradingOptions()">
                                     <option value="card">Card</option>
                                     <option value="sealed">Sealed Product</option>
                                 </select>
@@ -120,6 +120,51 @@
                                     <option value="Damaged">Damaged</option>
                                     <option value="Sealed">Sealed</option>
                                     <option value="Opened">Opened</option>
+                                </select>
+                            </div>
+                        </div>
+                        <!-- Edit Modal Grading Row -->
+                        <div class="form-row" id="editGradingRow" style="display: none;">
+                            <div class="form-group">
+                                <label for="editGradingStatus">Grading Status</label>
+                                <select id="editGradingStatus" onchange="toggleEditGradeSelection()">
+                                    <option value="raw">Raw (Ungraded)</option>
+                                    <option value="graded">Graded</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="editGradeCompanyGroup" style="display: none;">
+                                <label for="editGradeCompany">Grading Company</label>
+                                <select id="editGradeCompany">
+                                    <option value="PSA">PSA</option>
+                                    <option value="BGS">BGS (Beckett)</option>
+                                    <option value="CGC">CGC</option>
+                                    <option value="SGC">SGC</option>
+                                    <option value="ACE">ACE</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="editGradeValueGroup" style="display: none;">
+                                <label for="editGradeValue">Grade</label>
+                                <select id="editGradeValue">
+                                    <option value="10">10 (Perfect/Gem Mint)</option>
+                                    <option value="9.5">9.5</option>
+                                    <option value="9">9 (Mint)</option>
+                                    <option value="8.5">8.5</option>
+                                    <option value="8">8 (Near Mint-Mint)</option>
+                                    <option value="7.5">7.5</option>
+                                    <option value="7">7 (Near Mint)</option>
+                                    <option value="6.5">6.5</option>
+                                    <option value="6">6 (Excellent-Mint)</option>
+                                    <option value="5.5">5.5</option>
+                                    <option value="5">5 (Excellent)</option>
+                                    <option value="4.5">4.5</option>
+                                    <option value="4">4 (Very Good-Excellent)</option>
+                                    <option value="3.5">3.5</option>
+                                    <option value="3">3 (Very Good)</option>
+                                    <option value="2.5">2.5</option>
+                                    <option value="2">2 (Good)</option>
+                                    <option value="1.5">1.5</option>
+                                    <option value="1">1 (Poor)</option>
                                 </select>
                             </div>
                         </div>
@@ -160,7 +205,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="itemType">Item Type</label>
-                        <select id="itemType">
+                        <select id="itemType" onchange="toggleGradingOptions()">
                             <option value="card">Card</option>
                             <option value="sealed">Sealed Product</option>
                         </select>
@@ -189,6 +234,54 @@
                         </select>
                     </div>
                 </div>
+                <!-- Grading Row (only visible for cards) -->
+                <div class="form-row" id="gradingRow" style="display: none;">
+                    <div class="form-group">
+                        <label for="gradingStatus">Grading Status</label>
+                        <select id="gradingStatus" onchange="toggleGradeSelection()">
+                            <option value="raw">Raw (Ungraded)</option>
+                            <option value="graded">Graded</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="gradeCompanyGroup" style="display: none;">
+                        <label for="gradeCompany">Grading Company</label>
+                        <select id="gradeCompany">
+                            <option value="PSA">PSA</option>
+                            <option value="BGS">BGS (Beckett)</option>
+                            <option value="CGC">CGC</option>
+                            <option value="SGC">SGC</option>
+                            <option value="ACE">ACE</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="gradeValueGroup" style="display: none;">
+                        <label for="gradeValue">Grade</label>
+                        <select id="gradeValue">
+                            <option value="10">10 (Perfect/Gem Mint)</option>
+                            <option value="9.5">9.5</option>
+                            <option value="9">9 (Mint)</option>
+                            <option value="8.5">8.5</option>
+                            <option value="8">8 (Near Mint-Mint)</option>
+                            <option value="7.5">7.5</option>
+                            <option value="7">7 (Near Mint)</option>
+                            <option value="6.5">6.5</option>
+                            <option value="6">6 (Excellent-Mint)</option>
+                            <option value="5.5">5.5</option>
+                            <option value="5">5 (Excellent)</option>
+                            <option value="4.5">4.5</option>
+                            <option value="4">4 (Very Good-Excellent)</option>
+                            <option value="3.5">3.5</option>
+                            <option value="3">3 (Very Good)</option>
+                            <option value="2.5">2.5</option>
+                            <option value="2">2 (Good)</option>
+                            <option value="1.5">1.5</option>
+                            <option value="1">1 (Poor)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="placeholderGroup" style="visibility: hidden;">
+                        <!-- Placeholder to maintain grid layout -->
+                    </div>
+                </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="quantity">Quantity</label>
@@ -210,14 +303,46 @@
                 <button class="btn btn-primary" onclick="addItem()">Add Item to Inventory</button>
             </div>
 
-            <div class="table-container">
+            <!-- Tab Navigation -->
+            <div class="tab-navigation">
+                <button class="tab-button active" onclick="switchTab('cards')">Cards</button>
+                <button class="tab-button" onclick="switchTab('sealed')">Sealed Products</button>
+                <button class="tab-button" onclick="switchTab('sold')">Sold Items</button>
+            </div>
+
+            <!-- Cards Table -->
+            <div class="table-container" id="cardsTableContainer">
+                <h3 class="table-title">Card Collection</h3>
                 <table>
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Type</th>
                             <th>Item Name</th>
-                            <th>Set/Product</th>
+                            <th>Set</th>
+                            <th>Condition/Grade</th>
+                            <th>Qty</th>
+                            <th>Buy Price</th>
+                            <th>Sell Price</th>
+                            <th>Profit/Loss</th>
+                            <th>ROI %</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cardsTable">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Sealed Products Table -->
+            <div class="table-container" id="sealedTableContainer" style="display: none;">
+                <h3 class="table-title">Sealed Products</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Product Name</th>
+                            <th>Set/Product Line</th>
                             <th>Condition</th>
                             <th>Qty</th>
                             <th>Buy Price</th>
@@ -228,7 +353,33 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="inventoryTable">
+                    <tbody id="sealedTable">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Sold Items Table -->
+            <div class="table-container" id="soldTableContainer" style="display: none;">
+                <h3 class="table-title">Sold Items</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Type</th>
+                            <th>Item Name</th>
+                            <th>Set/Product</th>
+                            <th>Condition/Grade</th>
+                            <th>Qty</th>
+                            <th>Buy Price</th>
+                            <th>Sell Price</th>
+                            <th>Profit</th>
+                            <th>ROI %</th>
+                            <th>Purchase Date</th>
+                            <th>Sold Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="soldTable">
                     </tbody>
                 </table>
             </div>
