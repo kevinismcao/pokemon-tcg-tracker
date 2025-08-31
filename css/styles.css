@@ -176,6 +176,11 @@ body {
     margin-bottom: 20px;
 }
 
+/* Grading row specific styling */
+#gradingRow, #editGradingRow {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
 .form-group {
     display: flex;
     flex-direction: column;

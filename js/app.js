@@ -51,6 +51,9 @@ function showMainApp() {
     
     // Set today's date as default
     document.getElementById('datePurchased').value = new Date().toISOString().split('T')[0];
+    
+    // Initialize grading options visibility based on default item type
+    toggleGradingOptions();
 }
 
 function login() {
@@ -666,7 +669,9 @@ function clearForm() {
     document.getElementById('buyPrice').value = '';
     document.getElementById('sellPrice').value = '';
     document.getElementById('datePurchased').value = new Date().toISOString().split('T')[0];
+    document.getElementById('itemType').value = 'card';
     document.getElementById('gradingStatus').value = 'raw';
+    toggleGradingOptions();
     toggleGradeSelection();
 }
 
