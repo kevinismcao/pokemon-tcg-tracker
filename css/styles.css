@@ -302,6 +302,44 @@ input:focus, select:focus {
     font-size: 0.9em;
 }
 
+.search-container {
+    padding: 20px 30px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.search-box {
+    display: flex;
+    gap: 10px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.search-box input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.search-box .btn {
+    padding: 10px 20px;
+}
+
+.search-results {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #6c757d;
+}
+
 .tab-navigation {
     display: flex;
     gap: 0;

@@ -303,6 +303,15 @@
                 <button class="btn btn-primary" onclick="addItem()">Add Item to Inventory</button>
             </div>
 
+            <!-- Search Bar -->
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search by item name or set..." onkeyup="filterItems()">
+                    <button class="btn btn-secondary" onclick="clearSearch()">Clear</button>
+                </div>
+                <div id="searchResults" class="search-results"></div>
+            </div>
+
             <!-- Tab Navigation -->
             <div class="tab-navigation">
                 <button class="tab-button active" onclick="switchTab('cards')">Cards</button>

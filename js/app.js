@@ -4,6 +4,7 @@ let nextId = 1;
 let isLoggedIn = false;
 let customSets = [];
 let currentTab = 'cards';
+let searchTerm = '';
 
 // Simple password hashing (for client-side only)
 function simpleHash(str) {
@@ -212,6 +213,17 @@ function switchTab(tab) {
     renderTable();
 }
 
+function filterItems() {
+    searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    renderTable();
+}
+
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    searchTerm = '';
+    renderTable();
+}
+
 function renderTable() {
     if (!isLoggedIn) return;
     
@@ -219,7 +231,16 @@ function renderTable() {
     const cardsBody = document.getElementById('cardsTable');
     cardsBody.innerHTML = '';
     
-    const cards = inventory.filter(item => item.type === 'card');
+    let cards = inventory.filter(item => item.type === 'card');
+    const totalCards = cards.length;
+    
+    // Apply search filter
+    if (searchTerm) {
+        cards = cards.filter(item => 
+            item.name.toLowerCase().includes(searchTerm) ||
+            item.set.toLowerCase().includes(searchTerm)
+        );
+    }
     cards.forEach(item => {
         const row = document.createElement('tr');
         const gainClass = item.totalGain > 0 ? 'profit' : item.totalGain < 0 ? 'loss' : '';
@@ -252,11 +273,24 @@ function renderTable() {
         cardsBody.appendChild(row);
     });
     
+    // Show no results message if needed
+    if (cards.length === 0 && searchTerm) {
+        cardsBody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 20px;">No cards found matching "' + searchTerm + '"</td></tr>';
+    }
+    
     // Render sealed products table
     const sealedBody = document.getElementById('sealedTable');
     sealedBody.innerHTML = '';
     
-    const sealedProducts = inventory.filter(item => item.type === 'sealed');
+    let sealedProducts = inventory.filter(item => item.type === 'sealed');
+    
+    // Apply search filter
+    if (searchTerm) {
+        sealedProducts = sealedProducts.filter(item => 
+            item.name.toLowerCase().includes(searchTerm) ||
+            item.set.toLowerCase().includes(searchTerm)
+        );
+    }
     sealedProducts.forEach(item => {
         const row = document.createElement('tr');
         const gainClass = item.totalGain > 0 ? 'profit' : item.totalGain < 0 ? 'loss' : '';
@@ -283,11 +317,26 @@ function renderTable() {
         sealedBody.appendChild(row);
     });
     
+    // Show no results message if needed
+    if (sealedProducts.length === 0 && searchTerm) {
+        sealedBody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 20px;">No sealed products found matching "' + searchTerm + '"</td></tr>';
+    }
+    
     // Render sold items table
     const soldBody = document.getElementById('soldTable');
     soldBody.innerHTML = '';
     
-    soldItems.forEach(item => {
+    let filteredSoldItems = soldItems;
+    
+    // Apply search filter
+    if (searchTerm) {
+        filteredSoldItems = soldItems.filter(item => 
+            item.name.toLowerCase().includes(searchTerm) ||
+            item.set.toLowerCase().includes(searchTerm)
+        );
+    }
+    
+    filteredSoldItems.forEach(item => {
         const row = document.createElement('tr');
         const gainClass = item.totalGain > 0 ? 'profit' : item.totalGain < 0 ? 'loss' : '';
         const roi = item.buyPrice > 0 ? ((item.sellPrice - item.buyPrice) / item.buyPrice * 100) : 0;
@@ -319,6 +368,26 @@ function renderTable() {
         `;
         soldBody.appendChild(row);
     });
+    
+    // Show no results message if needed
+    if (filteredSoldItems.length === 0 && searchTerm) {
+        soldBody.innerHTML = '<tr><td colspan="13" style="text-align: center; padding: 20px;">No sold items found matching "' + searchTerm + '"</td></tr>';
+    }
+    
+    // Update search results counter
+    updateSearchResults(cards.length, sealedProducts.length, filteredSoldItems.length);
+}
+
+function updateSearchResults(cardsCount, sealedCount, soldCount) {
+    const searchResults = document.getElementById('searchResults');
+    
+    if (searchTerm) {
+        const total = cardsCount + sealedCount + soldCount;
+        searchResults.textContent = `Found ${total} items matching "${searchTerm}" (${cardsCount} cards, ${sealedCount} sealed, ${soldCount} sold)`;
+        searchResults.style.display = 'block';
+    } else {
+        searchResults.style.display = 'none';
+    }
 }
 
 function editItem(id) {
