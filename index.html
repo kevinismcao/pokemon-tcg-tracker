@@ -59,6 +59,42 @@
                 </div>
             </div>
 
+            <!-- Sell Quantity Modal -->
+            <div id="sellModal" class="modal" style="display: none;">
+                <div class="modal-content" style="max-width: 400px;">
+                    <div class="modal-header">
+                        <h3>Mark as Sold</h3>
+                        <span class="close" onclick="closeSellModal()">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="sellItemId">
+                        <p id="sellItemInfo" style="margin-bottom: 20px;"></p>
+                        <div class="form-group">
+                            <label for="sellQuantity">Quantity to Sell</label>
+                            <input type="number" id="sellQuantity" min="1" value="1">
+                            <small id="sellQuantityMax" style="color: #666;"></small>
+                        </div>
+                        <div class="form-group">
+                            <label for="sellPriceInput">Sell Price ($)</label>
+                            <input type="number" id="sellPriceInput" step="0.01" min="0" placeholder="0.00">
+                            <small style="color: #666;">Original: $<span id="originalSellPrice">0.00</span></small>
+                        </div>
+                        <div class="form-group">
+                            <label for="sellDate">Date Sold</label>
+                            <input type="date" id="sellDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="sellNotes">Notes (optional)</label>
+                            <textarea id="sellNotes" rows="3" placeholder="e.g., Sold on eBay, buyer info, etc."></textarea>
+                        </div>
+                        <div class="modal-actions">
+                            <button class="btn btn-success" onclick="confirmSell()">Confirm Sale</button>
+                            <button class="btn btn-secondary" onclick="closeSellModal()">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Set Manager Modal -->
             <div id="setManagerModal" class="modal" style="display: none;">
                 <div class="modal-content">
@@ -428,6 +464,7 @@
                             <th>ROI %</th>
                             <th>Purchase Date</th>
                             <th>Sold Date</th>
+                            <th>Notes</th>
                             <th>Actions</th>
                         </tr>
                     </thead>

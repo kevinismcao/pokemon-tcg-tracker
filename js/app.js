@@ -446,6 +446,7 @@ function renderTable() {
             <td class="${roiClass}">${roi.toFixed(1)}%</td>
             <td>${item.date ? new Date(item.date).toLocaleDateString() : 'N/A'}</td>
             <td>${item.soldDate ? new Date(item.soldDate).toLocaleDateString() : 'N/A'}</td>
+            <td>${item.soldNotes || '-'}</td>
             <td>
                 <button class="btn btn-secondary" onclick="moveBackToInventory(${item.id})">Unsold</button>
                 <button class="btn btn-danger" onclick="removeSoldItem(${item.id})">Delete</button>
@@ -881,18 +882,87 @@ function markAsSold(id) {
     const item = inventory.find(i => i.id === id);
     if (!item) return;
     
-    if (confirm(`Mark "${item.name}" as sold?`)) {
-        // Add sold date to the item
-        item.soldDate = new Date().toISOString().split('T')[0];
-        
-        // Move from inventory to sold items
-        soldItems.push(item);
-        inventory = inventory.filter(i => i.id !== id);
-        
-        saveData();
-        renderTable();
-        updateStats();
+    // Show the sell modal for all items now (to allow setting sell price)
+    document.getElementById('sellModal').style.display = 'block';
+    document.getElementById('sellItemId').value = id;
+    
+    // Set item info
+    const itemInfo = `${item.name} - ${item.set || 'No Set'}`;
+    document.getElementById('sellItemInfo').textContent = `Selling: ${itemInfo}`;
+    
+    // Set quantity input
+    document.getElementById('sellQuantity').value = item.quantity;
+    document.getElementById('sellQuantity').max = item.quantity;
+    document.getElementById('sellQuantityMax').textContent = `Maximum: ${item.quantity}`;
+    
+    // Set sell price to current sell price
+    document.getElementById('sellPriceInput').value = item.sellPrice.toFixed(2);
+    document.getElementById('originalSellPrice').textContent = item.sellPrice.toFixed(2);
+    
+    // Set today's date
+    document.getElementById('sellDate').value = new Date().toISOString().split('T')[0];
+}
+
+function closeSellModal() {
+    document.getElementById('sellModal').style.display = 'none';
+    document.getElementById('sellItemId').value = '';
+    document.getElementById('sellQuantity').value = 1;
+    document.getElementById('sellPriceInput').value = '';
+    document.getElementById('sellNotes').value = '';
+}
+
+function confirmSell() {
+    if (!isLoggedIn) return;
+    
+    const itemId = parseInt(document.getElementById('sellItemId').value);
+    const quantityToSell = parseInt(document.getElementById('sellQuantity').value);
+    const sellPrice = parseFloat(document.getElementById('sellPriceInput').value) || 0;
+    const sellDate = document.getElementById('sellDate').value;
+    const sellNotes = document.getElementById('sellNotes').value;
+    
+    const item = inventory.find(i => i.id === itemId);
+    if (!item) return;
+    
+    if (quantityToSell <= 0 || quantityToSell > item.quantity) {
+        alert('Invalid quantity');
+        return;
     }
+    
+    if (quantityToSell === item.quantity) {
+        // Selling all items - update sell price and move to sold
+        item.sellPrice = sellPrice;
+        item.totalGain = ((item.sellPrice || 0) - (item.buyPrice || 0)) * item.quantity;
+        item.soldDate = sellDate;
+        item.soldNotes = sellNotes;
+        
+        soldItems.push(item);
+        inventory = inventory.filter(i => i.id !== itemId);
+    } else {
+        // Partial sale - split the item
+        // Create a sold item with the sold quantity
+        const soldItem = {
+            ...item,
+            id: nextId++,
+            quantity: quantityToSell,
+            sellPrice: sellPrice,
+            totalGain: ((sellPrice || 0) - (item.buyPrice || 0)) * quantityToSell,
+            soldDate: sellDate,
+            soldNotes: sellNotes
+        };
+        
+        // Reduce the quantity in inventory
+        item.quantity -= quantityToSell;
+        // Recalculate total gain for remaining inventory item
+        item.totalGain = ((item.sellPrice || 0) - (item.buyPrice || 0)) * item.quantity;
+        
+        // Add to sold items
+        soldItems.push(soldItem);
+    }
+    
+    closeSellModal();
+    saveData();
+    renderTable();
+    updateStats();
 }
 
 function moveBackToInventory(id) {
