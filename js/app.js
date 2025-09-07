@@ -136,13 +136,16 @@ function toggleGradeSelection() {
     const gradingStatus = document.getElementById('gradingStatus').value;
     const gradeCompanyGroup = document.getElementById('gradeCompanyGroup');
     const gradeValueGroup = document.getElementById('gradeValueGroup');
+    const certNumberGroup = document.getElementById('certNumberGroup');
     
     if (gradingStatus === 'graded') {
         gradeCompanyGroup.style.display = 'block';
         gradeValueGroup.style.display = 'block';
+        certNumberGroup.style.display = 'block';
     } else {
         gradeCompanyGroup.style.display = 'none';
         gradeValueGroup.style.display = 'none';
+        certNumberGroup.style.display = 'none';
     }
 }
 
@@ -196,13 +199,16 @@ function toggleEditGradeSelection() {
     const gradingStatus = document.getElementById('editGradingStatus').value;
     const gradeCompanyGroup = document.getElementById('editGradeCompanyGroup');
     const gradeValueGroup = document.getElementById('editGradeValueGroup');
+    const certNumberGroup = document.getElementById('editCertNumberGroup');
     
     if (gradingStatus === 'graded') {
         gradeCompanyGroup.style.display = 'block';
         gradeValueGroup.style.display = 'block';
+        certNumberGroup.style.display = 'block';
     } else {
         gradeCompanyGroup.style.display = 'none';
         gradeValueGroup.style.display = 'none';
+        certNumberGroup.style.display = 'none';
     }
 }
 
@@ -320,12 +326,14 @@ function renderTable() {
             const roiClass = roi > 0 ? 'roi-positive' : roi < 0 ? 'roi-negative' : '';
             
             const gradeDisplay = `${item.gradeCompany} ${item.gradeValue}`;
+            const certDisplay = item.certNumber || '-';
             
             row.innerHTML = `
                 <td>${item.id.toString().padStart(4, '0')}</td>
                 <td><strong>${item.name}</strong> <span class="type-badge type-graded">Graded</span></td>
                 <td>${item.set}</td>
                 <td>${gradeDisplay}</td>
+                <td>${certDisplay}</td>
                 <td>${item.quantity}</td>
                 <td>$${item.buyPrice.toFixed(2)}</td>
                 <td>$${item.sellPrice.toFixed(2)}</td>
@@ -343,7 +351,7 @@ function renderTable() {
         
         // Show no results message if needed
         if (gradedCards.length === 0 && searchTerm) {
-            gradedCardsBody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 20px;">No graded cards found matching "' + searchTerm + '"</td></tr>';
+            gradedCardsBody.innerHTML = '<tr><td colspan="12" style="text-align: center; padding: 20px;">No graded cards found matching "' + searchTerm + '"</td></tr>';
         }
     }
     
@@ -496,6 +504,7 @@ function editItem(id) {
         if (item.gradingStatus === 'graded') {
             document.getElementById('editGradeCompany').value = item.gradeCompany || 'PSA';
             document.getElementById('editGradeValue').value = item.gradeValue || '10';
+            document.getElementById('editCertNumber').value = item.certNumber || '';
         }
     }
 
@@ -601,6 +610,7 @@ function saveEditedItem() {
         if (updatedItem.gradingStatus === 'graded') {
             updatedItem.gradeCompany = document.getElementById('editGradeCompany').value;
             updatedItem.gradeValue = document.getElementById('editGradeValue').value;
+            updatedItem.certNumber = document.getElementById('editCertNumber').value;
         }
     }
     
@@ -838,6 +848,7 @@ function addItem() {
         if (newItem.gradingStatus === 'graded') {
             newItem.gradeCompany = document.getElementById('gradeCompany').value;
             newItem.gradeValue = document.getElementById('gradeValue').value;
+            newItem.certNumber = document.getElementById('certNumber').value;
         }
     }
 
@@ -857,6 +868,9 @@ function clearForm() {
     document.getElementById('datePurchased').value = new Date().toISOString().split('T')[0];
     document.getElementById('itemType').value = 'card';
     document.getElementById('gradingStatus').value = 'raw';
+    if (document.getElementById('certNumber')) {
+        document.getElementById('certNumber').value = '';
+    }
     toggleGradingOptions();
     toggleGradeSelection();
 }

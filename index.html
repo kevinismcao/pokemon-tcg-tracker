@@ -167,6 +167,10 @@
                                     <option value="1">1 (Poor)</option>
                                 </select>
                             </div>
+                            <div class="form-group" id="editCertNumberGroup" style="display: none;">
+                                <label for="editCertNumber">Certificate Number</label>
+                                <input type="text" id="editCertNumber" placeholder="e.g., 12345678">
+                            </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
@@ -290,8 +294,9 @@
                             <option value="1">1 (Poor)</option>
                         </select>
                     </div>
-                    <div class="form-group" id="placeholderGroup" style="visibility: hidden;">
-                        <!-- Placeholder to maintain grid layout -->
+                    <div class="form-group" id="certNumberGroup" style="display: none;">
+                        <label for="certNumber">Certificate Number</label>
+                        <input type="text" id="certNumber" placeholder="e.g., 12345678">
                     </div>
                 </div>
                 <div class="form-row">
@@ -366,6 +371,7 @@
                             <th>Card Name</th>
                             <th>Set</th>
                             <th>Grade</th>
+                            <th>Cert #</th>
                             <th>Qty</th>
                             <th>Buy Price</th>
                             <th>Sell Price</th>
