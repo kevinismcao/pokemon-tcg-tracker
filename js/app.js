@@ -174,6 +174,24 @@ function toggleEditGradingOptions() {
     }
 }
 
+function toggleManualProfit() {
+    const useManual = document.getElementById('useManualProfit').checked;
+    const manualProfitGroup = document.getElementById('manualProfitGroup');
+    
+    if (useManual) {
+        manualProfitGroup.style.display = 'block';
+        // Set initial value based on calculated profit
+        const quantity = parseInt(document.getElementById('editQuantity').value) || 0;
+        const buyPrice = parseFloat(document.getElementById('editBuyPrice').value) || 0;
+        const sellPrice = parseFloat(document.getElementById('editSellPrice').value) || 0;
+        const calculatedProfit = (sellPrice - buyPrice) * quantity;
+        document.getElementById('manualProfit').value = calculatedProfit.toFixed(2);
+    } else {
+        manualProfitGroup.style.display = 'none';
+        updateProfitPreview();
+    }
+}
+
 function toggleEditGradeSelection() {
     const gradingStatus = document.getElementById('editGradingStatus').value;
     const gradeCompanyGroup = document.getElementById('editGradeCompanyGroup');
@@ -259,9 +277,9 @@ function renderTable() {
             <td>${item.set}</td>
             <td>${conditionDisplay}</td>
             <td>${item.quantity}</td>
-            <td>${item.buyPrice.toFixed(2)}</td>
-            <td>${item.sellPrice.toFixed(2)}</td>
-            <td class="${gainClass}">${item.totalGain.toFixed(2)}</td>
+            <td>$${item.buyPrice.toFixed(2)}</td>
+            <td>$${item.sellPrice.toFixed(2)}</td>
+            <td class="${gainClass}">$${item.totalGain.toFixed(2)}</td>
             <td class="${roiClass}">${roi.toFixed(1)}%</td>
             <td>${item.date ? new Date(item.date).toLocaleDateString() : 'N/A'}</td>
             <td>
@@ -303,9 +321,9 @@ function renderTable() {
             <td>${item.set}</td>
             <td>${item.condition}</td>
             <td>${item.quantity}</td>
-            <td>${item.buyPrice.toFixed(2)}</td>
-            <td>${item.sellPrice.toFixed(2)}</td>
-            <td class="${gainClass}">${item.totalGain.toFixed(2)}</td>
+            <td>$${item.buyPrice.toFixed(2)}</td>
+            <td>$${item.sellPrice.toFixed(2)}</td>
+            <td class="${gainClass}">$${item.totalGain.toFixed(2)}</td>
             <td class="${roiClass}">${roi.toFixed(1)}%</td>
             <td>${item.date ? new Date(item.date).toLocaleDateString() : 'N/A'}</td>
             <td>
@@ -355,9 +373,9 @@ function renderTable() {
             <td>${item.set}</td>
             <td>${conditionDisplay}</td>
             <td>${item.quantity}</td>
-            <td>${item.buyPrice.toFixed(2)}</td>
-            <td>${item.sellPrice.toFixed(2)}</td>
-            <td class="${gainClass}">${item.totalGain.toFixed(2)}</td>
+            <td>$${item.buyPrice.toFixed(2)}</td>
+            <td>$${item.sellPrice.toFixed(2)}</td>
+            <td class="${gainClass}">$${item.totalGain.toFixed(2)}</td>
             <td class="${roiClass}">${roi.toFixed(1)}%</td>
             <td>${item.date ? new Date(item.date).toLocaleDateString() : 'N/A'}</td>
             <td>${item.soldDate ? new Date(item.soldDate).toLocaleDateString() : 'N/A'}</td>
@@ -391,7 +409,7 @@ function updateSearchResults(cardsCount, sealedCount, soldCount) {
 }
 
 function editItem(id) {
-    const item = inventory.find(i => i.id === id);
+    const item = inventory.find(i => i.id === id) || soldItems.find(i => i.id === id);
     if (!item) return;
 
     // Populate edit form
@@ -404,6 +422,10 @@ function editItem(id) {
     document.getElementById('editBuyPrice').value = item.buyPrice;
     document.getElementById('editSellPrice').value = item.sellPrice;
     document.getElementById('editDatePurchased').value = item.date;
+    
+    // Reset manual profit checkbox
+    document.getElementById('useManualProfit').checked = false;
+    document.getElementById('manualProfitGroup').style.display = 'none';
     
     // Handle grading fields
     toggleEditGradingOptions();
@@ -429,14 +451,21 @@ function updateProfitPreview() {
     const quantity = parseInt(document.getElementById('editQuantity').value) || 0;
     const buyPrice = parseFloat(document.getElementById('editBuyPrice').value) || 0;
     const sellPrice = parseFloat(document.getElementById('editSellPrice').value) || 0;
-    const profit = (sellPrice - buyPrice) * quantity;
-    const roi = buyPrice > 0 ? ((sellPrice - buyPrice) / buyPrice * 100) : 0;
+    
+    let profit;
+    if (document.getElementById('useManualProfit').checked) {
+        profit = parseFloat(document.getElementById('manualProfit').value) || 0;
+    } else {
+        profit = (sellPrice - buyPrice) * quantity;
+    }
+    
+    const roi = (buyPrice > 0 && quantity > 0) ? (profit / (buyPrice * quantity) * 100) : 0;
 
     const profitClass = profit > 0 ? 'profit' : profit < 0 ? 'loss' : '';
     const roiClass = roi > 0 ? 'roi-positive' : roi < 0 ? 'roi-negative' : '';
     
     document.getElementById('profitPreview').innerHTML = `
-        <span class="${profitClass}">${profit.toFixed(2)}</span> 
+        $<span class="${profitClass}">${profit.toFixed(2)}</span> 
         (<span class="${roiClass}">${roi.toFixed(1)}% ROI</span>)
     `;
 }
@@ -450,7 +479,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Add listeners for profit preview updates
-    const editInputs = ['editQuantity', 'editBuyPrice', 'editSellPrice'];
+    const editInputs = ['editQuantity', 'editBuyPrice', 'editSellPrice', 'manualProfit'];
     editInputs.forEach(id => {
         document.addEventListener('input', function(e) {
             if (e.target && e.target.id === id) {
@@ -462,9 +491,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function saveEditedItem() {
     const id = parseInt(document.getElementById('editItemId').value);
-    const itemIndex = inventory.findIndex(i => i.id === id);
+    let itemIndex = inventory.findIndex(i => i.id === id);
+    let isSoldItem = false;
     
-    if (itemIndex === -1) return;
+    if (itemIndex === -1) {
+        // Check if it's a sold item
+        itemIndex = soldItems.findIndex(i => i.id === id);
+        if (itemIndex === -1) return;
+        isSoldItem = true;
+    }
 
     const itemName = document.getElementById('editItemName').value.trim();
     if (!itemName) {
@@ -474,17 +509,29 @@ function saveEditedItem() {
 
     // Update the item
     const itemType = document.getElementById('editItemType').value;
+    const quantity = parseInt(document.getElementById('editQuantity').value) || 1;
+    const buyPrice = parseFloat(document.getElementById('editBuyPrice').value) || 0;
+    const sellPrice = parseFloat(document.getElementById('editSellPrice').value) || 0;
+    
+    // Calculate profit/loss
+    let totalGain;
+    if (document.getElementById('useManualProfit').checked) {
+        totalGain = parseFloat(document.getElementById('manualProfit').value) || 0;
+    } else {
+        totalGain = (sellPrice - buyPrice) * quantity;
+    }
+    
     const updatedItem = {
         id: id,
         type: itemType,
         name: itemName,
         set: document.getElementById('editSetName').value,
         condition: document.getElementById('editCondition').value,
-        quantity: parseInt(document.getElementById('editQuantity').value),
-        buyPrice: parseFloat(document.getElementById('editBuyPrice').value) || 0,
-        sellPrice: parseFloat(document.getElementById('editSellPrice').value) || 0,
+        quantity: quantity,
+        buyPrice: buyPrice,
+        sellPrice: sellPrice,
         date: document.getElementById('editDatePurchased').value,
-        totalGain: (parseFloat(document.getElementById('editSellPrice').value) || 0 - parseFloat(document.getElementById('editBuyPrice').value) || 0) * parseInt(document.getElementById('editQuantity').value)
+        totalGain: totalGain
     };
     
     // Add grading info if it's a card
@@ -496,7 +543,16 @@ function saveEditedItem() {
         }
     }
     
-    inventory[itemIndex] = updatedItem;
+    // Update the correct array
+    if (isSoldItem) {
+        // Preserve the sold date if it exists
+        if (soldItems[itemIndex].soldDate) {
+            updatedItem.soldDate = soldItems[itemIndex].soldDate;
+        }
+        soldItems[itemIndex] = updatedItem;
+    } else {
+        inventory[itemIndex] = updatedItem;
+    }
 
     saveData();
     renderTable();
