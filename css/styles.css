@@ -26,6 +26,8 @@ body {
     font-size: 11px;
     font-weight: bold;
     text-transform: uppercase;
+    margin-right: 4px;
+    display: inline-block;
 }
 
 .type-card {
@@ -36,6 +38,18 @@ body {
 .type-sealed {
     background: #f6ad55;
     color: white;
+}
+
+.type-raw {
+    background: #cbd5e0;
+    color: #2d3748;
+}
+
+.type-graded {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    color: #744210;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
 }
 
 /* Login Styles */

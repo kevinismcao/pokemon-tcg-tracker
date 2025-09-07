@@ -3,7 +3,7 @@ let soldItems = [];
 let nextId = 1;
 let isLoggedIn = false;
 let customSets = [];
-let currentTab = 'cards';
+let currentTab = 'raw';
 let searchTerm = '';
 
 // Simple password hashing (for client-side only)
@@ -216,12 +216,15 @@ function switchTab(tab) {
     event.target.classList.add('active');
     
     // Show/hide table containers
-    document.getElementById('cardsTableContainer').style.display = 'none';
+    document.getElementById('rawCardsTableContainer').style.display = 'none';
+    document.getElementById('gradedCardsTableContainer').style.display = 'none';
     document.getElementById('sealedTableContainer').style.display = 'none';
     document.getElementById('soldTableContainer').style.display = 'none';
     
-    if (tab === 'cards') {
-        document.getElementById('cardsTableContainer').style.display = 'block';
+    if (tab === 'raw') {
+        document.getElementById('rawCardsTableContainer').style.display = 'block';
+    } else if (tab === 'graded') {
+        document.getElementById('gradedCardsTableContainer').style.display = 'block';
     } else if (tab === 'sealed') {
         document.getElementById('sealedTableContainer').style.display = 'block';
     } else if (tab === 'sold') {
@@ -245,55 +248,103 @@ function clearSearch() {
 function renderTable() {
     if (!isLoggedIn) return;
     
-    // Render cards table
-    const cardsBody = document.getElementById('cardsTable');
-    cardsBody.innerHTML = '';
+    let rawCards = [];
+    let gradedCards = [];
     
-    let cards = inventory.filter(item => item.type === 'card');
-    const totalCards = cards.length;
-    
-    // Apply search filter
-    if (searchTerm) {
-        cards = cards.filter(item => 
-            item.name.toLowerCase().includes(searchTerm) ||
-            item.set.toLowerCase().includes(searchTerm)
-        );
-    }
-    cards.forEach(item => {
-        const row = document.createElement('tr');
-        const gainClass = item.totalGain > 0 ? 'profit' : item.totalGain < 0 ? 'loss' : '';
-        const roi = item.buyPrice > 0 ? ((item.sellPrice - item.buyPrice) / item.buyPrice * 100) : 0;
-        const roiClass = roi > 0 ? 'roi-positive' : roi < 0 ? 'roi-negative' : '';
+    // Render raw cards table
+    const rawCardsBody = document.getElementById('rawCardsTable');
+    if (rawCardsBody) {
+        rawCardsBody.innerHTML = '';
         
-        // Format grading info for display
-        let conditionDisplay = item.condition;
-        if (item.gradingStatus === 'graded') {
-            conditionDisplay = `${item.gradeCompany} ${item.gradeValue}`;
+        rawCards = inventory.filter(item => item.type === 'card' && item.gradingStatus !== 'graded');
+        
+        // Apply search filter
+        if (searchTerm) {
+            rawCards = rawCards.filter(item => 
+                item.name.toLowerCase().includes(searchTerm) ||
+                item.set.toLowerCase().includes(searchTerm)
+            );
         }
         
-        row.innerHTML = `
-            <td>${item.id.toString().padStart(4, '0')}</td>
-            <td><strong>${item.name}</strong></td>
-            <td>${item.set}</td>
-            <td>${conditionDisplay}</td>
-            <td>${item.quantity}</td>
-            <td>$${item.buyPrice.toFixed(2)}</td>
-            <td>$${item.sellPrice.toFixed(2)}</td>
-            <td class="${gainClass}">$${item.totalGain.toFixed(2)}</td>
-            <td class="${roiClass}">${roi.toFixed(1)}%</td>
-            <td>${item.date ? new Date(item.date).toLocaleDateString() : 'N/A'}</td>
-            <td>
-                <button class="btn btn-edit" onclick="editItem(${item.id})">Edit</button>
-                <button class="btn btn-success" onclick="markAsSold(${item.id})">Sold</button>
-                <button class="btn btn-danger" onclick="removeItem(${item.id})">Delete</button>
-            </td>
-        `;
-        cardsBody.appendChild(row);
-    });
+        rawCards.forEach(item => {
+            const row = document.createElement('tr');
+            const gainClass = item.totalGain > 0 ? 'profit' : item.totalGain < 0 ? 'loss' : '';
+            const roi = item.buyPrice > 0 ? ((item.sellPrice - item.buyPrice) / item.buyPrice * 100) : 0;
+            const roiClass = roi > 0 ? 'roi-positive' : roi < 0 ? 'roi-negative' : '';
+            
+            row.innerHTML = `
+                <td>${item.id.toString().padStart(4, '0')}</td>
+                <td><strong>${item.name}</strong> <span class="type-badge type-raw">Raw</span></td>
+                <td>${item.set}</td>
+                <td>${item.condition}</td>
+                <td>${item.quantity}</td>
+                <td>$${item.buyPrice.toFixed(2)}</td>
+                <td>$${item.sellPrice.toFixed(2)}</td>
+                <td class="${gainClass}">$${item.totalGain.toFixed(2)}</td>
+                <td class="${roiClass}">${roi.toFixed(1)}%</td>
+                <td>${item.date ? new Date(item.date).toLocaleDateString() : 'N/A'}</td>
+                <td>
+                    <button class="btn btn-edit" onclick="editItem(${item.id})">Edit</button>
+                    <button class="btn btn-success" onclick="markAsSold(${item.id})">Sold</button>
+                    <button class="btn btn-danger" onclick="removeItem(${item.id})">Delete</button>
+                </td>
+            `;
+            rawCardsBody.appendChild(row);
+        });
+        
+        // Show no results message if needed
+        if (rawCards.length === 0 && searchTerm) {
+            rawCardsBody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 20px;">No raw cards found matching "' + searchTerm + '"</td></tr>';
+        }
+    }
     
-    // Show no results message if needed
-    if (cards.length === 0 && searchTerm) {
-        cardsBody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 20px;">No cards found matching "' + searchTerm + '"</td></tr>';
+    // Render graded cards table
+    const gradedCardsBody = document.getElementById('gradedCardsTable');
+    if (gradedCardsBody) {
+        gradedCardsBody.innerHTML = '';
+        
+        gradedCards = inventory.filter(item => item.type === 'card' && item.gradingStatus === 'graded');
+        
+        // Apply search filter
+        if (searchTerm) {
+            gradedCards = gradedCards.filter(item => 
+                item.name.toLowerCase().includes(searchTerm) ||
+                item.set.toLowerCase().includes(searchTerm)
+            );
+        }
+        
+        gradedCards.forEach(item => {
+            const row = document.createElement('tr');
+            const gainClass = item.totalGain > 0 ? 'profit' : item.totalGain < 0 ? 'loss' : '';
+            const roi = item.buyPrice > 0 ? ((item.sellPrice - item.buyPrice) / item.buyPrice * 100) : 0;
+            const roiClass = roi > 0 ? 'roi-positive' : roi < 0 ? 'roi-negative' : '';
+            
+            const gradeDisplay = `${item.gradeCompany} ${item.gradeValue}`;
+            
+            row.innerHTML = `
+                <td>${item.id.toString().padStart(4, '0')}</td>
+                <td><strong>${item.name}</strong> <span class="type-badge type-graded">Graded</span></td>
+                <td>${item.set}</td>
+                <td>${gradeDisplay}</td>
+                <td>${item.quantity}</td>
+                <td>$${item.buyPrice.toFixed(2)}</td>
+                <td>$${item.sellPrice.toFixed(2)}</td>
+                <td class="${gainClass}">$${item.totalGain.toFixed(2)}</td>
+                <td class="${roiClass}">${roi.toFixed(1)}%</td>
+                <td>${item.date ? new Date(item.date).toLocaleDateString() : 'N/A'}</td>
+                <td>
+                    <button class="btn btn-edit" onclick="editItem(${item.id})">Edit</button>
+                    <button class="btn btn-success" onclick="markAsSold(${item.id})">Sold</button>
+                    <button class="btn btn-danger" onclick="removeItem(${item.id})">Delete</button>
+                </td>
+            `;
+            gradedCardsBody.appendChild(row);
+        });
+        
+        // Show no results message if needed
+        if (gradedCards.length === 0 && searchTerm) {
+            gradedCardsBody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 20px;">No graded cards found matching "' + searchTerm + '"</td></tr>';
+        }
     }
     
     // Render sealed products table
@@ -317,7 +368,7 @@ function renderTable() {
         
         row.innerHTML = `
             <td>${item.id.toString().padStart(4, '0')}</td>
-            <td><strong>${item.name}</strong></td>
+            <td><strong>${item.name}</strong> <span class="type-badge type-sealed">Sealed</span></td>
             <td>${item.set}</td>
             <td>${item.condition}</td>
             <td>${item.quantity}</td>
@@ -362,13 +413,21 @@ function renderTable() {
         
         // Format grading info for display
         let conditionDisplay = item.condition;
-        if (item.type === 'card' && item.gradingStatus === 'graded') {
-            conditionDisplay = `${item.gradeCompany} ${item.gradeValue}`;
+        let typeDisplay = '';
+        if (item.type === 'card') {
+            if (item.gradingStatus === 'graded') {
+                conditionDisplay = `${item.gradeCompany} ${item.gradeValue}`;
+                typeDisplay = '<span class="type-badge type-card">Card</span> <span class="type-badge type-graded">Graded</span>';
+            } else {
+                typeDisplay = '<span class="type-badge type-card">Card</span> <span class="type-badge type-raw">Raw</span>';
+            }
+        } else {
+            typeDisplay = `<span class="type-badge type-sealed">Sealed</span>`;
         }
         
         row.innerHTML = `
             <td>${item.id.toString().padStart(4, '0')}</td>
-            <td><span class="type-badge type-${item.type}">${item.type}</span></td>
+            <td>${typeDisplay}</td>
             <td><strong>${item.name}</strong></td>
             <td>${item.set}</td>
             <td>${conditionDisplay}</td>
@@ -393,15 +452,17 @@ function renderTable() {
     }
     
     // Update search results counter
-    updateSearchResults(cards.length, sealedProducts.length, filteredSoldItems.length);
+    const rawCardsCount = rawCardsBody ? rawCards.length : 0;
+    const gradedCardsCount = gradedCardsBody ? gradedCards.length : 0;
+    updateSearchResults(rawCardsCount, gradedCardsCount, sealedProducts.length, filteredSoldItems.length);
 }
 
-function updateSearchResults(cardsCount, sealedCount, soldCount) {
+function updateSearchResults(rawCount, gradedCount, sealedCount, soldCount) {
     const searchResults = document.getElementById('searchResults');
     
     if (searchTerm) {
-        const total = cardsCount + sealedCount + soldCount;
-        searchResults.textContent = `Found ${total} items matching "${searchTerm}" (${cardsCount} cards, ${sealedCount} sealed, ${soldCount} sold)`;
+        const total = rawCount + gradedCount + sealedCount + soldCount;
+        searchResults.textContent = `Found ${total} items matching "${searchTerm}" (${rawCount} raw, ${gradedCount} graded, ${sealedCount} sealed, ${soldCount} sold)`;
         searchResults.style.display = 'block';
     } else {
         searchResults.style.display = 'none';

@@ -326,21 +326,22 @@
 
             <!-- Tab Navigation -->
             <div class="tab-navigation">
-                <button class="tab-button active" onclick="switchTab('cards')">Cards</button>
+                <button class="tab-button active" onclick="switchTab('raw')">Raw Cards</button>
+                <button class="tab-button" onclick="switchTab('graded')">Graded Cards</button>
                 <button class="tab-button" onclick="switchTab('sealed')">Sealed Products</button>
                 <button class="tab-button" onclick="switchTab('sold')">Sold Items</button>
             </div>
 
-            <!-- Cards Table -->
-            <div class="table-container" id="cardsTableContainer">
-                <h3 class="table-title">Card Collection</h3>
+            <!-- Raw Cards Table -->
+            <div class="table-container" id="rawCardsTableContainer">
+                <h3 class="table-title">Raw Card Collection</h3>
                 <table>
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Item Name</th>
+                            <th>Card Name</th>
                             <th>Set</th>
-                            <th>Condition/Grade</th>
+                            <th>Condition</th>
                             <th>Qty</th>
                             <th>Buy Price</th>
                             <th>Sell Price</th>
@@ -350,7 +351,31 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="cardsTable">
+                    <tbody id="rawCardsTable">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Graded Cards Table -->
+            <div class="table-container" id="gradedCardsTableContainer" style="display: none;">
+                <h3 class="table-title">Graded Card Collection</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Card Name</th>
+                            <th>Set</th>
+                            <th>Grade</th>
+                            <th>Qty</th>
+                            <th>Buy Price</th>
+                            <th>Sell Price</th>
+                            <th>Profit/Loss</th>
+                            <th>ROI %</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gradedCardsTable">
                     </tbody>
                 </table>
             </div>
